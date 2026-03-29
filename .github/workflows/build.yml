@@ -1,0 +1,55 @@
+name: Build Nokia EA0326GMP
+
+on:
+  workflow_dispatch: # 允许手动点击开始
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Space cleanup
+        run: |
+          sudo rm -rf /usr/share/dotnet /etc/mysql /etc/php
+          sudo -E apt-get -y purge azure-cli* docker* ghc* zulu* mysql* php* google*
+          sudo -E apt-get update
+          sudo -E apt-get -y install build-essential clang flex bison g++ gawk gcc-multilib g++-multilib gettext git libncurses-dev libssl-dev python3-distutils rsync unzip zlib1g-dev file wget
+          sudo -E apt-get clean
+
+      - name: Clone source
+        run: |
+          # 使用 hanwckf 的源码分支，对你的芯片适配更好
+          git clone --depth 1 https://github.com/immortalwrt/immortalwrt.git openwrt
+          cd openwrt
+          ./scripts/feeds update -a
+          ./scripts/feeds install -a
+
+      - name: Download Config
+        run: |
+          cd openwrt
+          # 核心机型配置
+          echo "CONFIG_TARGET_mediatek=y" > .config
+          echo "CONFIG_TARGET_mediatek_filogic=y" >> .config
+          echo "CONFIG_TARGET_mediatek_filogic_DEVICE_nokia_ea0326gmp=y" >> .config
+          
+          # 仅保留这三款核心代理插件
+          echo "CONFIG_PACKAGE_luci-app-nikki=y" >> .config
+          echo "CONFIG_PACKAGE_luci-app-passwall=y" >> .config
+          echo "CONFIG_PACKAGE_luci-app-openclash=y" >> .config
+          
+          # 自动补全依赖
+          make defconfig
+
+      - name: Compile
+        run: |
+          cd openwrt
+          # 首次编译建议使用单线程排查错误，如果追求速度可改回 -j$(nproc)
+          make -j$(nproc) || make -j1 V=s
+
+      - name: Upload firmware
+        uses: actions/upload-artifact@v4
+        with:
+          name: Nokia_EA0326GMP_Firmware
+          path: openwrt/bin/targets/mediatek/filogic/*
