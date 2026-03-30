@@ -48,8 +48,16 @@ jobs:
           ./scripts/feeds update -a
           rm -rf feeds/packages/net/xray-core
           rm -rf feeds/packages/net/xray-plugin
+          rm -rf feeds/packages/net/sing-box
+          rm -rf feeds/packages/net/hysteria
+          rm -rf feeds/packages/net/chinadns-ng
+          rm -rf feeds/packages/net/dns2socks
+          rm -rf feeds/packages/net/dns2tcp
+          rm -rf feeds/packages/net/microsocks
+          rm -rf feeds/packages/net/ipt2socks
+          rm -rf feeds/packages/net/tcping
           rm -rf feeds/luci/applications/luci-app-passwall
-          ./scripts/feeds install -a
+          ./scripts/feeds install -a -f
 
       - name: Generate Config
         run: |
@@ -68,9 +76,8 @@ jobs:
           CONFIG_PACKAGE_ca-certificates=y
           CONFIG_PACKAGE_ip-full=y
           CONFIG_PACKAGE_ipset=y
-          CONFIG_PACKAGE_iptables-nft=y
+          CONFIG_PACKAGE_iptables=y
           CONFIG_PACKAGE_ip6tables=y
-          CONFIG_PACKAGE_kmod-nft-tproxy=y
           CONFIG_PACKAGE_kmod-ipt-tproxy=y
 
           # LuCI
@@ -104,8 +111,7 @@ jobs:
 
           # Nikki
           CONFIG_PACKAGE_luci-app-nikki=y
-          CONFIG_PACKAGE_luci-i18n-nikki-zh-cn=y
-          CONFIG_PACKAGE_mihomo=y
+          CONFIG_PACKAGE_nikki=y
           EOF
           make defconfig
 
@@ -126,4 +132,3 @@ jobs:
           name: ImmortalWrt-EA0326GMP-Firmware
           path: openwrt/bin/targets/mediatek/filogic/*
           retention-days: 7
- 
